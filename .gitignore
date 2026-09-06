@@ -16,6 +16,9 @@ env/
 ml/models/*.pkl
 ml/models/*.joblib
 !ml/models/feature_config.json
+!ml/models/fraud_model.pkl
+!ml/models/scaler.pkl
+!ml/models/evaluation_report.json
 
 # Data
 data/raw/*.csv
