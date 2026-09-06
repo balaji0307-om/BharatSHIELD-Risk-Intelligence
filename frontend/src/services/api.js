@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+const rawBase = import.meta.env?.VITE_API_URL || '';
+// Ensure baseURL points to /api without double slashes
+const apiBase = rawBase ? `${rawBase.replace(/\/+$/, '')}/api` : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: apiBase,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -79,6 +83,68 @@ export const alertsAPI = {
 export const assistantAPI = {
   ask: async (query) => {
     const res = await api.post('/assistant/ask', { query });
+    return res.data;
+  },
+};
+
+export const postureAPI = {
+  getPosture: async () => {
+    const res = await api.get('/merchant/posture');
+    return res.data;
+  },
+};
+
+export const threatsAPI = {
+  getLive: async (limit = 20) => {
+    const res = await api.get(`/threats/live?limit=${limit}`);
+    return res.data;
+  },
+};
+
+export const fraudNetworkAPI = {
+  getNetwork: async () => {
+    const res = await api.get('/fraud-network');
+    return res.data;
+  },
+  getTransactionNetwork: async (transactionId) => {
+    const res = await api.get(`/fraud-network/${transactionId}`);
+    return res.data;
+  },
+};
+
+export const casesAPI = {
+  listCases: async (params = {}) => {
+    const res = await api.get('/cases', { params });
+    return res.data;
+  },
+  getCase: async (caseId) => {
+    const res = await api.get(`/cases/${caseId}`);
+    return res.data;
+  },
+  updateCase: async (caseId, data) => {
+    const res = await api.put(`/cases/${caseId}`, data);
+    return res.data;
+  },
+};
+
+export const simulatorAPI = {
+  assess: async (data) => {
+    const res = await api.post('/simulator/assess', data);
+    return res.data;
+  },
+};
+
+export const auditAPI = {
+  getLogs: async (params = {}) => {
+    const res = await api.get('/audit/logs', { params });
+    return res.data;
+  },
+  verifyChain: async () => {
+    const res = await api.get('/audit/verify');
+    return res.data;
+  },
+  getLogDetail: async (logId) => {
+    const res = await api.get(`/audit/logs/${logId}`);
     return res.data;
   },
 };

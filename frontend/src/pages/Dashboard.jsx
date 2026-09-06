@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   ShieldAlert,
   ShieldCheck,
@@ -28,7 +27,7 @@ import MetricCard from '../components/MetricCard';
 import TransactionTable from '../components/TransactionTable';
 import RiskBadge from '../components/RiskBadge';
 import RiskScore from '../components/RiskScore';
-import { analyticsAPI, transactionsAPI, alertsAPI } from '../services/api';
+import { analyticsAPI, transactionsAPI, alertsAPI, postureAPI, threatsAPI } from '../services/api';
 
 const Dashboard = () => {
   const [kpis, setKpis] = useState(null);
@@ -48,16 +47,16 @@ const Dashboard = () => {
         analyticsAPI.getTrends(),
         transactionsAPI.listTransactions({ page: 1, page_size: 8 }),
         alertsAPI.listAlerts(),
-        axios.get('/api/merchant/posture').catch(() => ({ data: null })),
-        axios.get('/api/threats/live?limit=4').catch(() => ({ data: [] })),
+        postureAPI.getPosture().catch(() => null),
+        threatsAPI.getLive(4).catch(() => []),
       ]);
 
       setKpis(overviewData);
       setTrends(trendData.trends || []);
       setRecentTransactions(txnData.items || []);
       setActiveAlerts(alertData.filter((a) => !a.is_acknowledged));
-      setPosture(postureRes.data);
-      setLiveThreats(threatsRes.data || []);
+      setPosture(postureRes);
+      setLiveThreats(threatsRes || []);
     } catch (err) {
       console.error('Error fetching dashboard telemetry:', err);
     } finally {

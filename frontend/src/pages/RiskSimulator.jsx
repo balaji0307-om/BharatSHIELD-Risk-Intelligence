@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { FlaskConical, Play, RotateCcw, AlertTriangle, ArrowRight, ShieldAlert } from 'lucide-react';
 import RiskScore from '../components/RiskScore';
 import RiskBadge from '../components/RiskBadge';
+import { simulatorAPI } from '../services/api';
 
 const RiskSimulator = () => {
   const [params, setParams] = useState({
@@ -23,11 +23,11 @@ const RiskSimulator = () => {
   const runSimulation = async () => {
     setLoading(true);
     try {
-      const res = await axios.post('/api/simulator/assess', params);
+      const data = await simulatorAPI.assess(params);
       if (simulationResult) {
         setPreviousScore(simulationResult.risk_score);
       }
-      setSimulationResult(res.data);
+      setSimulationResult(data);
     } catch (err) {
       console.error('Simulation execution failed:', err);
     } finally {

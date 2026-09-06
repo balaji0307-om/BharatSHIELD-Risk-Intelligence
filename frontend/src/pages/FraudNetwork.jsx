@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Network, ShieldAlert, Laptop, MapPin, Layers, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import RiskBadge from '../components/RiskBadge';
+import { fraudNetworkAPI } from '../services/api';
 
 const FraudNetwork = () => {
   const [networkData, setNetworkData] = useState({ nodes: [], edges: [], clusters: [] });
@@ -12,8 +12,8 @@ const FraudNetwork = () => {
 
   const fetchNetwork = async () => {
     try {
-      const res = await axios.get('/api/fraud-network');
-      setNetworkData(res.data || { nodes: [], edges: [], clusters: [] });
+      const data = await fraudNetworkAPI.getNetwork();
+      setNetworkData(data || { nodes: [], edges: [], clusters: [] });
     } catch (err) {
       console.error('Failed to load fraud network:', err);
     } finally {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { ShieldCheck, ShieldAlert, CheckCircle2, Link2, ExternalLink, RefreshCw, Key } from 'lucide-react';
 import RiskBadge from '../components/RiskBadge';
+import { auditAPI } from '../services/api';
 
 const AuditTrail = () => {
   const [logs, setLogs] = useState([]);
@@ -13,11 +13,11 @@ const AuditTrail = () => {
     setLoading(true);
     try {
       const [logsRes, verifyRes] = await Promise.all([
-        axios.get('/api/audit/logs?limit=50'),
-        axios.get('/api/audit/verify')
+        auditAPI.getLogs({ limit: 50 }),
+        auditAPI.verifyChain()
       ]);
-      setLogs(logsRes.data.items || []);
-      setVerification(verifyRes.data);
+      setLogs(logsRes.items || []);
+      setVerification(verifyRes);
     } catch (err) {
       console.error('Failed to load cryptographic audit logs:', err);
     } finally {

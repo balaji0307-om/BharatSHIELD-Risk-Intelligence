@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Search, FolderOpen, AlertCircle, CheckCircle2, User, Clock, MessageSquare, ShieldAlert } from 'lucide-react';
 import RiskBadge from '../components/RiskBadge';
+import { casesAPI } from '../services/api';
 
 const Investigations = () => {
   const [cases, setCases] = useState([]);
@@ -13,10 +13,10 @@ const Investigations = () => {
 
   const fetchCases = async () => {
     try {
-      const res = await axios.get('/api/cases');
-      setCases(res.data || []);
-      if (res.data && res.data.length > 0 && !selectedCase) {
-        setSelectedCase(res.data[0]);
+      const data = await casesAPI.listCases();
+      setCases(data || []);
+      if (data && data.length > 0 && !selectedCase) {
+        setSelectedCase(data[0]);
       }
     } catch (err) {
       console.error('Failed loading investigation cases:', err);
@@ -33,11 +33,11 @@ const Investigations = () => {
     if (!selectedCase) return;
     setUpdating(true);
     try {
-      const res = await axios.put(`/api/cases/${selectedCase.case_id}`, {
+      const data = await casesAPI.updateCase(selectedCase.case_id, {
         status: newStatus,
         notes: analystNote ? `${selectedCase.notes || ''}\n[${new Date().toLocaleTimeString()}]: ${analystNote}` : selectedCase.notes
       });
-      setSelectedCase(res.data);
+      setSelectedCase(data);
       setAnalystNote('');
       fetchCases();
     } catch (err) {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Siren, ShieldAlert, ArrowUpRight, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import RiskBadge from '../components/RiskBadge';
+import { threatsAPI } from '../services/api';
 
 const Threats = () => {
   const [threats, setThreats] = useState([]);
@@ -12,8 +12,8 @@ const Threats = () => {
 
   const fetchThreats = async () => {
     try {
-      const res = await axios.get('/api/threats/live?limit=30');
-      setThreats(res.data || []);
+      const data = await threatsAPI.getLive(30);
+      setThreats(data || []);
       setLastRefreshed(new Date());
     } catch (err) {
       console.error('Error fetching live threats:', err);
