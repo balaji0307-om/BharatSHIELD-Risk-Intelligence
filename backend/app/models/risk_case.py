@@ -51,6 +51,9 @@ class RiskCase(Base):
     assigned_to = Column(String(128), nullable=True)
     notes = Column(Text, nullable=True)
     
+    escalated_at = Column(DateTime, nullable=True)
+    resolved_at = Column(DateTime, nullable=True)
+    
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -73,6 +76,9 @@ class AuditLog(Base):
     # Serialized JSON representations
     reasons_summary = Column(Text, nullable=False)
     raw_payload = Column(Text, nullable=False)
+    
+    hash = Column(String(64), nullable=True)
+    previous_hash = Column(String(64), nullable=True)
     
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     

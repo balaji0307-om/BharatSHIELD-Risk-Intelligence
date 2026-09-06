@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "BharatSHIELD — Merchant Risk Intelligence"
     API_V1_STR: str = "/api"
     DEBUG: bool = True
+    GEMINI_API_KEY: Optional[str] = None
+    DEMO_MODE: bool = True
     
     # Security
     JWT_SECRET_KEY: str = "bharatshield-super-secret-key-change-in-production-2025"

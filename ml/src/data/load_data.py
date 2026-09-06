@@ -13,9 +13,9 @@ def load_dataset(filepath: str) -> pd.DataFrame:
     """
     df = pd.read_csv(filepath)
     
-    # Essential features to validate
-    required_cols = get_feature_columns() + [get_target_column(), 'transaction_id', 'merchant_id', 'timestamp']
-    missing_cols = [col for col in required_cols if col not in df.columns]
+    # Essential features to validate (core features only, not entity/metadata columns)
+    core_required = get_feature_columns() + [get_target_column()]
+    missing_cols = [col for col in core_required if col not in df.columns]
     
     if missing_cols:
         raise ValueError(f"Missing required columns in dataset: {missing_cols}")

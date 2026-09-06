@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   ShieldAlert,
   ShieldCheck,
@@ -7,6 +8,8 @@ import {
   TrendingUp,
   Activity,
   ArrowUpRight,
+  Siren,
+  Laptop,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -19,32 +22,42 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 import MetricCard from '../components/MetricCard';
 import TransactionTable from '../components/TransactionTable';
+import RiskBadge from '../components/RiskBadge';
+import RiskScore from '../components/RiskScore';
 import { analyticsAPI, transactionsAPI, alertsAPI } from '../services/api';
 
 const Dashboard = () => {
   const [kpis, setKpis] = useState(null);
+  const [posture, setPosture] = useState(null);
+  const [liveThreats, setLiveThreats] = useState([]);
   const [trends, setTrends] = useState([]);
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [activeAlerts, setActiveAlerts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
-      const [overviewData, trendData, txnData, alertData] = await Promise.all([
+      const [overviewData, trendData, txnData, alertData, postureRes, threatsRes] = await Promise.all([
         analyticsAPI.getOverview(),
         analyticsAPI.getTrends(),
         transactionsAPI.listTransactions({ page: 1, page_size: 8 }),
         alertsAPI.listAlerts(),
+        axios.get('/api/merchant/posture').catch(() => ({ data: null })),
+        axios.get('/api/threats/live?limit=4').catch(() => ({ data: [] })),
       ]);
 
       setKpis(overviewData);
       setTrends(trendData.trends || []);
       setRecentTransactions(txnData.items || []);
       setActiveAlerts(alertData.filter((a) => !a.is_acknowledged));
+      setPosture(postureRes.data);
+      setLiveThreats(threatsRes.data || []);
     } catch (err) {
       console.error('Error fetching dashboard telemetry:', err);
     } finally {
@@ -54,8 +67,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    // Auto-refresh every 15 seconds for live hackathon demo feel
-    const interval = setInterval(fetchDashboardData, 15000);
+    const interval = setInterval(fetchDashboardData, 12000);
     return () => clearInterval(interval);
   }, []);
 
@@ -79,6 +91,122 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Merchant Risk Posture Banner */}
+      {posture && (
+        <div className="p-6 rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/80 to-slate-950 shadow-xl">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="shrink-0 flex flex-col items-center">
+                <RiskScore score={posture.overall_risk_score} size="md" />
+                <div className="text-[10px] text-slate-400 uppercase font-mono tracking-wider mt-1 font-semibold">
+                  Posture Score
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h2 className="text-lg font-bold text-white tracking-tight">MERCHANT RISK POSTURE</h2>
+                  <RiskBadge level={posture.overall_risk_level} />
+                </div>
+                <p className="text-xs text-slate-400 mt-1 max-w-md">
+                  Active security telemetry computed across live payment gateways and device associations.
+                </p>
+
+                <div className="flex flex-wrap gap-4 mt-3 text-xs font-mono">
+                  <div>
+                    <span className="text-slate-500">Total Txns:</span>{' '}
+                    <span className="text-white font-semibold">{posture.total_transactions?.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Fraud Rate:</span>{' '}
+                    <span className="text-rose-400 font-semibold">{posture.fraud_rate}%</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Active Threats:</span>{' '}
+                    <span className="text-amber-400 font-semibold">{posture.active_threats}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Open Cases:</span>{' '}
+                    <span className="text-sky-400 font-semibold">{posture.open_cases}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Risk Drivers Mini Bars */}
+            <div className="lg:w-72 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 space-y-2">
+              <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                Top Risk Drivers (SHAP)
+              </div>
+              <div className="space-y-1.5">
+                {posture.top_risk_drivers?.slice(0, 3).map((driver, i) => (
+                  <div key={i} className="text-[11px]">
+                    <div className="flex justify-between text-slate-300 font-medium">
+                      <span className="truncate max-w-[170px]">{driver.driver}</span>
+                      <span className="font-mono text-emerald-400">{driver.percentage}%</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full mt-0.5 overflow-hidden">
+                      <div
+                        className="bg-emerald-500 h-full rounded-full"
+                        style={{ width: `${driver.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Threat Feed Preview Panel */}
+      {liveThreats.length > 0 && (
+        <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+              </span>
+              <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
+                <Siren className="text-rose-400" size={16} />
+                LIVE THREAT INGRESS
+              </h3>
+            </div>
+            <button
+              onClick={() => navigate('/threats')}
+              className="text-xs text-emerald-400 hover:underline font-mono flex items-center gap-1"
+            >
+              <span>View All Threats</span>
+              <ArrowUpRight size={14} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {liveThreats.map((threat) => (
+              <div
+                key={threat.transaction_id}
+                onClick={() => navigate(`/transactions/${threat.transaction_id}`)}
+                className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-semibold text-slate-300">
+                    TXN-{threat.transaction_id.slice(0, 8)}
+                  </span>
+                  <RiskBadge level={threat.risk_level} />
+                </div>
+                <div className="font-mono text-sm font-bold text-white">
+                  ₹{Number(threat.amount).toLocaleString('en-IN')}
+                </div>
+                <div className="text-[11px] text-slate-400 truncate">
+                  {threat.top_risk_driver || 'Velocity burst'}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 4 KPI Tiles */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

@@ -2,21 +2,27 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Siren,
   ReceiptText,
-  AlertTriangle,
-  BarChart3,
+  Network,
+  Search,
+  FlaskConical,
   Bot,
+  BarChart3,
   ShieldCheck,
-  Zap,
 } from 'lucide-react';
 
 const Sidebar = () => {
   const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/threats', label: 'Live Threats', icon: Siren },
     { to: '/transactions', label: 'Transactions', icon: ReceiptText },
-    { to: '/alerts', label: 'Spike Alerts', icon: AlertTriangle },
-    { to: '/analytics', label: 'Model Analytics', icon: BarChart3 },
+    { to: '/fraud-network', label: 'Fraud Network', icon: Network },
+    { to: '/investigations', label: 'Investigations', icon: Search },
+    { to: '/simulator', label: 'Risk Simulator', icon: FlaskConical },
     { to: '/assistant', label: 'AI Risk Assistant', icon: Bot },
+    { to: '/analytics', label: 'Model Analytics', icon: BarChart3 },
+    { to: '/audit', label: 'Audit Trail', icon: ShieldCheck },
   ];
 
   return (
@@ -36,7 +42,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="p-4 space-y-1.5">
+        <nav className="p-3 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -44,14 +50,14 @@ const Sidebar = () => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     isActive
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm shadow-emerald-500/5'
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm shadow-emerald-500/5 font-semibold'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                   }`
                 }
               >
-                <Icon size={18} />
+                <Icon size={16} />
                 <span>{item.label}</span>
               </NavLink>
             );
@@ -60,13 +66,13 @@ const Sidebar = () => {
       </div>
 
       {/* Footer / System Status badge */}
-      <div className="p-4 m-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
+      <div className="p-3 m-3 rounded-xl bg-slate-900/60 border border-slate-800/80">
         <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span>Risk Engine Active</span>
+          <span>Risk Engine Online</span>
         </div>
-        <p className="text-[11px] text-slate-400 mt-1">
-          XGBoost + SHAP TreeExplainer online. Sub-50ms inference.
+        <p className="text-[10px] text-slate-400 mt-0.5">
+          XGBoost + SHAP + SHA-256 Audit Chain active.
         </p>
       </div>
     </aside>

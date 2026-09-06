@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
 from backend.app.database.connection import init_db
 from backend.app.services.risk_engine import risk_engine
-from backend.app.api import transactions, risk, analytics, alerts, assistant, auth
+from backend.app.api import transactions, risk, analytics, alerts, assistant, auth, fraud_network, threats, simulator, cases, merchant_posture, audit
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("bharatshield")
@@ -54,6 +54,12 @@ app.include_router(risk.router, prefix=settings.API_V1_STR)
 app.include_router(analytics.router, prefix=settings.API_V1_STR)
 app.include_router(alerts.router, prefix=settings.API_V1_STR)
 app.include_router(assistant.router, prefix=settings.API_V1_STR)
+app.include_router(fraud_network.router, prefix=settings.API_V1_STR)
+app.include_router(threats.router, prefix=settings.API_V1_STR)
+app.include_router(simulator.router, prefix=settings.API_V1_STR)
+app.include_router(cases.router, prefix=settings.API_V1_STR)
+app.include_router(merchant_posture.router, prefix=settings.API_V1_STR)
+app.include_router(audit.router, prefix=settings.API_V1_STR)
 
 @app.get("/", tags=["System"])
 def root():

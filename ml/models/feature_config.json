@@ -1,13 +1,13 @@
 {
   "model_version": "1.0.0",
   "model_name": "xgboost",
-  "training_date": "2026-09-06T23:03:23.214212",
+  "training_date": "2026-09-06T23:33:53.889065",
   "dataset_info": {
     "total_samples": 15000,
-    "fraud_rate": 0.03,
-    "train_size": 10500,
-    "val_size": 2250,
-    "test_size": 2250
+    "fraud_rate": 0.035,
+    "train_size": 10454,
+    "val_size": 2288,
+    "test_size": 2258
   },
   "feature_names": [
     "transaction_amount",
@@ -18,15 +18,15 @@
     "transactions_last_5min",
     "transactions_last_10min",
     "transactions_last_1hr",
+    "amount_last_1hr",
     "is_new_device",
     "is_new_location",
     "device_transaction_count",
-    "location_change",
-    "distance_from_previous",
     "avg_transaction_amount",
     "amount_deviation",
-    "amount_last_1hr",
     "historical_frequency",
+    "location_change",
+    "distance_from_previous",
     "pay_Credit Card",
     "pay_Debit Card",
     "pay_Net Banking",
@@ -50,49 +50,49 @@
   ],
   "evaluation_metrics": {
     "precision": 1.0,
-    "recall": 1.0,
-    "f1_score": 1.0,
-    "accuracy": 1.0,
-    "auc_roc": 1.0,
-    "auc_pr": 1.0,
+    "recall": 0.963855421686747,
+    "f1_score": 0.9815950920245399,
+    "accuracy": 0.9986713906111603,
+    "auc_roc": 0.9991026173660157,
+    "auc_pr": 0.9915240051915333,
     "false_positive_rate": 0.0,
-    "false_negative_rate": 0.0,
+    "false_negative_rate": 0.03614457831325301,
     "confusion_matrix": [
       [
-        2183,
+        2175,
         0
       ],
       [
-        0,
-        67
+        3,
+        80
       ]
     ],
-    "fraud_detection_rate": 1.0,
+    "fraud_detection_rate": 0.963855421686747,
     "false_alarm_rate": 0.0
   },
   "model_comparison": {
     "logistic_regression": {
-      "f1": 0.9925925925925926,
-      "precision": 1.0,
-      "recall": 0.9852941176470589,
-      "auc_roc": 1.0,
-      "inference_latency_sec": 0.005007266998291016
+      "f1": 0.6090909090909091,
+      "precision": 0.46206896551724136,
+      "recall": 0.8933333333333333,
+      "auc_roc": 0.9711583069739419,
+      "inference_latency_sec": 0.004000186920166016
     },
     "random_forest": {
-      "f1": 1.0,
+      "f1": 0.9361702127659575,
       "precision": 1.0,
-      "recall": 1.0,
-      "auc_roc": 1.0,
-      "inference_latency_sec": 0.08026742935180664
+      "recall": 0.88,
+      "auc_roc": 0.9987708992318121,
+      "inference_latency_sec": 0.08211493492126465
     },
     "xgboost": {
-      "f1": 1.0,
+      "f1": 0.9583333333333334,
       "precision": 1.0,
-      "recall": 1.0,
-      "auc_roc": 1.0,
-      "inference_latency_sec": 0.013427019119262695
+      "recall": 0.92,
+      "auc_roc": 0.9988612742882964,
+      "inference_latency_sec": 0.01338958740234375
     }
   },
-  "selected_model_reason": "xgboost achieved the highest F1 score (1.0000) on the validation set while maintaining competitive precision/recall balance and low inference latency.",
-  "threshold": 0.1
+  "selected_model_reason": "xgboost achieved the highest F1 score (0.9583) on the validation set while maintaining competitive precision/recall balance and low inference latency.",
+  "threshold": 0.3500000000000001
 }

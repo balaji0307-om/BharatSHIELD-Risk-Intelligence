@@ -9,9 +9,9 @@ services:
     container_name: bharatshield-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: bharatshield
-      POSTGRES_PASSWORD: bharatshield_secret
-      POSTGRES_DB: bharatshield
+      POSTGRES_USER: ${POSTGRES_USER:-bharatshield}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-bharatshield}
     ports:
       - "5432:5432"
     volumes:
@@ -33,8 +33,8 @@ services:
     restart: unless-stopped
     environment:
       - USE_SQLITE=false
-      - DATABASE_URL=postgresql://bharatshield:bharatshield_secret@db:5432/bharatshield
-      - JWT_SECRET_KEY=bharatshield-super-secret-key-change-in-production-2025
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-bharatshield}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-bharatshield}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
       - API_HOST=0.0.0.0
       - API_PORT=8000
     ports:

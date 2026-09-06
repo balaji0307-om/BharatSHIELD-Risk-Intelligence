@@ -36,13 +36,13 @@ def decode_token(token: str) -> Optional[dict]:
         return None
 
 async def get_current_merchant_id(token: Optional[str] = Depends(oauth2_scheme)) -> str:
-    """
-    Extracts authenticated merchant or defaults to demo merchant for easy hackathon testing.
-    """
     if not token:
-        return "MER_razorpay_001"
+        if settings.DEMO_MODE:
+            return "MER_razorpay_001"
+        raise HTTPException(status_code=401, detail="Authentication required")
     payload = decode_token(token)
     if not payload:
-        return "MER_razorpay_001"
-    merchant_id = payload.get("sub")
-    return merchant_id or "MER_razorpay_001"
+        if settings.DEMO_MODE:
+            return "MER_razorpay_001"
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return payload.get("sub", "MER_razorpay_001")

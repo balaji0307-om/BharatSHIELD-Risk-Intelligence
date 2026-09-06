@@ -3,6 +3,7 @@ Repository layer providing clean abstractions for DB operations.
 """
 
 import json
+import uuid
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy.orm import Session
@@ -85,7 +86,10 @@ class TransactionRepository:
             for f in assessment.get("risk_factors", [])[:4]
         ])
         
+        now_utc = datetime.now(timezone.utc)
+        log_id = f"AUD-{uuid.uuid4().hex[:12]}"
         audit = AuditLog(
+            log_id=log_id,
             transaction_id=transaction_id,
             merchant_id=merchant_id,
             decision_type="TRANSACTION_RISK_EVALUATION",
@@ -93,8 +97,11 @@ class TransactionRepository:
             risk_level=assessment["risk_level"],
             recommended_action=assessment["recommended_action"].get("action", "Allow"),
             reasons_summary=reasons_text or "Standard rule & ML assessment pass.",
-            raw_payload=json.dumps(raw_payload, default=str)
+            raw_payload=json.dumps(raw_payload, default=str),
+            created_at=now_utc
         )
+        from backend.app.services.audit_chain_service import AuditChainService
+        AuditChainService.append_to_chain(db, audit)
         db.add(audit)
         db.flush()
         return audit
