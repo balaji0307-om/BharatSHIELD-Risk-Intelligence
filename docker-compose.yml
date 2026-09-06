@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # PostgreSQL Primary Database
+  # -------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: bharatshield-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bharatshield
+      POSTGRES_PASSWORD: bharatshield_secret
+      POSTGRES_DB: bharatshield
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bharatshield"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------
+  # FastAPI Backend & ML Inference Engine
+  # -------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: bharatshield-backend
+    restart: unless-stopped
+    environment:
+      - USE_SQLITE=false
+      - DATABASE_URL=postgresql://bharatshield:bharatshield_secret@db:5432/bharatshield
+      - JWT_SECRET_KEY=bharatshield-super-secret-key-change-in-production-2025
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./ml/models:/app/ml/models
+      - ./data:/app/data
+
+  # -------------------------------------------------------------
+  # React + Vite Merchant Dashboard
+  # -------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: bharatshield-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+    driver: local

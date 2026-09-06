@@ -1,0 +1,98 @@
+{
+  "model_version": "1.0.0",
+  "model_name": "xgboost",
+  "training_date": "2026-09-06T23:03:23.214212",
+  "dataset_info": {
+    "total_samples": 15000,
+    "fraud_rate": 0.03,
+    "train_size": 10500,
+    "val_size": 2250,
+    "test_size": 2250
+  },
+  "feature_names": [
+    "transaction_amount",
+    "transaction_hour",
+    "transaction_day",
+    "device_age_days",
+    "failed_attempts",
+    "transactions_last_5min",
+    "transactions_last_10min",
+    "transactions_last_1hr",
+    "is_new_device",
+    "is_new_location",
+    "device_transaction_count",
+    "location_change",
+    "distance_from_previous",
+    "avg_transaction_amount",
+    "amount_deviation",
+    "amount_last_1hr",
+    "historical_frequency",
+    "pay_Credit Card",
+    "pay_Debit Card",
+    "pay_Net Banking",
+    "pay_UPI",
+    "pay_Wallet",
+    "amount_bin",
+    "amount_log",
+    "is_high_value",
+    "hour_bin",
+    "is_weekend",
+    "velocity_ratio_5_10",
+    "velocity_ratio_10_60",
+    "velocity_acceleration",
+    "amount_velocity",
+    "is_velocity_spike",
+    "amount_zscore",
+    "is_unusual_amount",
+    "device_risk_score",
+    "location_risk_score",
+    "combined_risk_indicators"
+  ],
+  "evaluation_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "accuracy": 1.0,
+    "auc_roc": 1.0,
+    "auc_pr": 1.0,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0,
+    "confusion_matrix": [
+      [
+        2183,
+        0
+      ],
+      [
+        0,
+        67
+      ]
+    ],
+    "fraud_detection_rate": 1.0,
+    "false_alarm_rate": 0.0
+  },
+  "model_comparison": {
+    "logistic_regression": {
+      "f1": 0.9925925925925926,
+      "precision": 1.0,
+      "recall": 0.9852941176470589,
+      "auc_roc": 1.0,
+      "inference_latency_sec": 0.005007266998291016
+    },
+    "random_forest": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "auc_roc": 1.0,
+      "inference_latency_sec": 0.08026742935180664
+    },
+    "xgboost": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "auc_roc": 1.0,
+      "inference_latency_sec": 0.013427019119262695
+    }
+  },
+  "selected_model_reason": "xgboost achieved the highest F1 score (1.0000) on the validation set while maintaining competitive precision/recall balance and low inference latency.",
+  "threshold": 0.1
+}

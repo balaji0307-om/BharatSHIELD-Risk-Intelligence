@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="50%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <!-- Outer Shield -->
+  <path d="M50 5 L88 20 V50 C88 72 72 90 50 95 C28 90 12 72 12 50 V20 L50 5 Z" 
+        fill="url(#shieldGrad)" stroke="#34d399" stroke-width="2" />
+  <!-- Inner Shield Accent -->
+  <path d="M50 15 L78 27 V50 C78 66 66 80 50 84 C34 80 22 66 22 50 V27 L50 15 Z" 
+        fill="#0f172a" opacity="0.9" />
+  <!-- Tricolor & Lightning / Pulse Motif -->
+  <path d="M50 25 L65 48 H48 L55 75 L35 50 H52 L50 25 Z" 
+        fill="url(#accentGrad)" />
+</svg>
