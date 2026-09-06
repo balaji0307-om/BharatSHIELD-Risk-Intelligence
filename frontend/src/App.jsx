@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
@@ -13,9 +13,19 @@ import FraudNetwork from './pages/FraudNetwork';
 import RiskSimulator from './pages/RiskSimulator';
 import Investigations from './pages/Investigations';
 import AuditTrail from './pages/AuditTrail';
+import CinematicSplash from './components/CinematicSplash';
 
 function AppContent() {
   const navigate = useNavigate();
+  const [showSplash, setShowSplash] = useState(() => {
+    // Check if user has already seen the splash in this browser session
+    return !sessionStorage.getItem('bharatshield_intro_seen');
+  });
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('bharatshield_intro_seen', 'true');
+    setShowSplash(false);
+  };
 
   const handleTransactionInjected = (scoredTxn) => {
     if (scoredTxn && scoredTxn.transaction_id) {
@@ -24,7 +34,9 @@ function AppContent() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
+    <>
+      {showSplash && <CinematicSplash onComplete={handleSplashComplete} />}
+      <div className="flex min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
       {/* Fixed Sidebar */}
       <Sidebar />
 
@@ -49,6 +61,7 @@ function AppContent() {
         </main>
       </div>
     </div>
+    </>
   );
 }
 

@@ -75,6 +75,18 @@ const Navbar = ({ onTransactionInjected }) => {
           <span>Simulate Incoming Attack</span>
         </button>
 
+        {/* Replay Cinematic Intro button */}
+        <button
+          onClick={() => {
+            sessionStorage.removeItem('bharatshield_intro_seen');
+            window.location.reload();
+          }}
+          className="px-2.5 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-mono transition"
+          title="Replay Cinematic Intro"
+        >
+          Intro ⟳
+        </button>
+
         {/* Live indicator */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-800 text-xs text-slate-300">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
