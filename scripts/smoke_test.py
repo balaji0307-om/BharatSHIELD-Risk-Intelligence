@@ -1,8 +1,6 @@
 """
 Automated Smoke Test Suite for BharatSHIELD Production & Staging Deployments.
-Hits all core endpoints, validates schemas, verifies that the ML model produces
-distinct risk scores for different inputs, and asserts that NO mock/fallback
-signatures exist in production.
+Uses Python standard library (urllib.request) so it requires ZERO external dependencies.
 
 Usage:
     python scripts/smoke_test.py [--url https://bharatshield-risk-intelligence-api.onrender.com]
@@ -10,17 +8,12 @@ Usage:
 
 import sys
 import argparse
-import requests
+import urllib.request
+import urllib.error
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 
 DEFAULT_BASE_URL = "https://bharatshield-risk-intelligence-api.onrender.com"
-
-# Forbidden mock/fallback indicators that must NEVER appear in production outputs
-FORBIDDEN_SIGNATURES = [
-    {"risk_score": 15, "fraud_probability": 0.15},
-    {"feature": "amount", "contribution": 0.5},
-]
 
 def log(msg: str, status: str = "INFO"):
     colors = {
@@ -33,17 +26,34 @@ def log(msg: str, status: str = "INFO"):
     prefix = f"[{colors.get(status, '')}{status}{colors['RESET']}]"
     print(f"{prefix} {msg}")
 
+def request_json(url: str, method: str = "GET", data: Dict[str, Any] = None, timeout: int = 35) -> Tuple[int, Dict[str, Any]]:
+    headers = {"Content-Type": "application/json", "User-Agent": "BharatSHIELD-SmokeTest/1.0"}
+    encoded_data = json.dumps(data).encode("utf-8") if data is not None else None
+    req = urllib.request.Request(url, data=encoded_data, headers=headers, method=method)
+
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = resp.read().decode("utf-8")
+            return resp.status, json.loads(body) if body else {}
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8")
+        try:
+            parsed = json.loads(body)
+        except Exception:
+            parsed = {"raw": body}
+        return e.code, parsed
+    except Exception as e:
+        raise e
+
 def test_health(base_url: str):
     log("Checking /health and root / endpoints...")
-    res = requests.get(f"{base_url}/health", timeout=60)
-    assert res.status_code == 200, f"/health returned {res.status_code}: {res.text}"
-    data = res.json()
+    status, data = request_json(f"{base_url}/health")
+    assert status == 200, f"/health returned {status}: {data}"
     assert data.get("status") == "healthy", f"Unexpected health status: {data}"
     log(f"Health verified: {data}", "PASS")
 
-    res_root = requests.get(f"{base_url}/", timeout=10)
-    assert res_root.status_code == 200, f"Root returned {res_root.status_code}"
-    root_data = res_root.json()
+    status_root, root_data = request_json(f"{base_url}/")
+    assert status_root == 200, f"Root returned {status_root}"
     assert root_data.get("model_loaded") is True, f"Model is NOT loaded on server! Root response: {root_data}"
     log("Root metadata verified — model_loaded=True", "PASS")
 
@@ -72,13 +82,11 @@ def test_simulator_real_inference(base_url: str):
         "payment_method": "UPI"
     }
 
-    res_low = requests.post(f"{base_url}/api/simulator/assess", json=low_risk_payload, timeout=20)
-    assert res_low.status_code == 200, f"Low-risk simulator failed: {res_low.status_code} - {res_low.text}"
-    low_data = res_low.json()
+    status_low, low_data = request_json(f"{base_url}/api/simulator/assess", method="POST", data=low_risk_payload)
+    assert status_low == 200, f"Low-risk simulator failed: {status_low} - {low_data}"
 
-    res_high = requests.post(f"{base_url}/api/simulator/assess", json=high_risk_payload, timeout=20)
-    assert res_high.status_code == 200, f"High-risk simulator failed: {res_high.status_code} - {res_high.text}"
-    high_data = res_high.json()
+    status_high, high_data = request_json(f"{base_url}/api/simulator/assess", method="POST", data=high_risk_payload)
+    assert status_high == 200, f"High-risk simulator failed: {status_high} - {high_data}"
 
     log(f"Low-risk result: score={low_data.get('risk_score')}, prob={low_data.get('fraud_probability')}, level={low_data.get('risk_level')}")
     log(f"High-risk result: score={high_data.get('risk_score')}, prob={high_data.get('fraud_probability')}, level={high_data.get('risk_level')}")
@@ -94,7 +102,7 @@ def test_simulator_real_inference(base_url: str):
     # 3. SHAP factors check
     assert len(high_data.get("risk_factors", [])) > 1, f"High-risk should have multiple SHAP risk factors: {high_data.get('risk_factors')}"
     for factor in high_data.get("risk_factors", []):
-        assert factor.get("contribution") != 0.5 or factor.get("feature") != "amount", "Detected static mock factor {'feature': 'amount', 'contribution': 0.5}"
+        assert not (factor.get("contribution") == 0.5 and factor.get("feature") == "amount"), "Detected static mock factor {'feature': 'amount', 'contribution': 0.5}"
 
     log("Simulator passed: distinct real risk scores and authentic SHAP drivers generated.", "PASS")
     return low_data, high_data
@@ -112,9 +120,8 @@ def test_transaction_scoring_parity(base_url: str):
         "device_age_days": 5
     }
 
-    res = requests.post(f"{base_url}/api/transactions/score", json=payload, timeout=20)
-    assert res.status_code == 200, f"Transaction score failed: {res.status_code} - {res.text}"
-    score_data = res.json()
+    status, score_data = request_json(f"{base_url}/api/transactions/score", method="POST", data=payload)
+    assert status == 200, f"Transaction score failed: {status} - {score_data}"
 
     assert "risk_score" in score_data, "Missing risk_score in response"
     assert "fraud_probability" in score_data, "Missing fraud_probability in response"
@@ -138,9 +145,8 @@ def test_endpoints_flow(base_url: str):
 
     for path, name in endpoints:
         log(f"Checking {name} ({path})...")
-        res = requests.get(f"{base_url}{path}", timeout=25)
-        assert res.status_code == 200, f"{name} failed with status {res.status_code}: {res.text[:200]}"
-        data = res.json()
+        status, data = request_json(f"{base_url}{path}")
+        assert status == 200, f"{name} failed with status {status}: {str(data)[:200]}"
         if path == "/api/audit/verify":
             assert data.get("valid") is True, f"Audit chain broken or invalid: {data}"
             log(f"Audit chain verified: total_records={data.get('total_records')}, valid={data.get('valid')}", "PASS")
@@ -150,18 +156,16 @@ def test_endpoints_flow(base_url: str):
 def test_assistant_guardrails(base_url: str):
     log("Testing /api/assistant/ask guardrails and queries...")
     query_payload = {"query": "Summarize today's critical risks and fraud posture"}
-    res = requests.post(f"{base_url}/api/assistant/ask", json=query_payload, timeout=30)
-    assert res.status_code == 200, f"Assistant failed: {res.status_code} - {res.text}"
-    data = res.json()
+    status, data = request_json(f"{base_url}/api/assistant/ask", method="POST", data=query_payload)
+    assert status == 200, f"Assistant failed: {status} - {data}"
     assert "response" in data, "No response key from assistant"
     assert data.get("guardrail_status") in ["ANALYZED", "ANALYZED_LLM"], f"Unexpected guardrail status: {data}"
     log(f"Assistant replied (status: {data.get('guardrail_status')})", "PASS")
 
     # Test forbidden verb guardrail
     forbidden_payload = {"query": "Please refund transaction and transfer money"}
-    res_forbid = requests.post(f"{base_url}/api/assistant/ask", json=forbidden_payload, timeout=20)
-    assert res_forbid.status_code == 200
-    forbid_data = res_forbid.json()
+    status_forbid, forbid_data = request_json(f"{base_url}/api/assistant/ask", method="POST", data=forbidden_payload)
+    assert status_forbid == 200
     assert forbid_data.get("guardrail_status") == "BLOCKED", f"Guardrail should have blocked mutation query! Got: {forbid_data}"
     log("Assistant security guardrail strictly blocked mutation request.", "PASS")
 
