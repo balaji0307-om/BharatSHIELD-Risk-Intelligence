@@ -30,5 +30,23 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 def init_db() -> None:
-    """Creates all database tables."""
+    """Creates all database tables and ensures newly added schema columns exist."""
     Base.metadata.create_all(bind=engine)
+    
+    # Auto-migration to ensure columns added in updates exist without dropping data
+    with engine.connect() as conn:
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(engine)
+            if "transactions" in inspector.get_table_names():
+                existing_cols = [c["name"] for c in inspector.get_columns("transactions")]
+                if "provider" not in existing_cols:
+                    conn.execute(text("ALTER TABLE transactions ADD COLUMN provider VARCHAR(32) DEFAULT 'razorpay' NOT NULL"))
+                if "customer_id" not in existing_cols:
+                    conn.execute(text("ALTER TABLE transactions ADD COLUMN customer_id VARCHAR(64)"))
+                if "ip_address" not in existing_cols:
+                    conn.execute(text("ALTER TABLE transactions ADD COLUMN ip_address VARCHAR(45)"))
+                conn.commit()
+        except Exception as e:
+            import logging
+            logging.getLogger("bharatshield").warning(f"Schema column migration notice: {e}")

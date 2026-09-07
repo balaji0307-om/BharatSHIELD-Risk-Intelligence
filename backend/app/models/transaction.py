@@ -49,6 +49,8 @@ class Transaction(Base):
     amount = Column(Float, nullable=False)
     currency = Column(String(8), default="INR")
     payment_method = Column(String(32), default="UPI")
+    provider = Column(String(32), default="razorpay", index=True, nullable=False)
+    customer_id = Column(String(64), nullable=True, index=True)
     status = Column(String(32), default="PENDING")  # ALLOWED, VERIFY_REQUIRED, STEP_UP_REQUIRED, HELD_FOR_REVIEW
     
     # Contextual Telemetry
@@ -57,6 +59,7 @@ class Transaction(Base):
     transaction_day = Column(Integer, nullable=True)
     
     device_id = Column(String(64), index=True, nullable=True)
+    ip_address = Column(String(45), nullable=True)
     device_age_days = Column(Integer, default=0)
     is_new_device = Column(Boolean, default=False)
     device_transaction_count = Column(Integer, default=1)

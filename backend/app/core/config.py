@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     RECAPTCHA_SECRET_KEY: str = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
     RECAPTCHA_SITE_KEY: str = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
     
+    # Webhook Ingestion & Payment Provider Secret Rotation
+    RAZORPAY_WEBHOOK_SECRET: str = "rzp_webhook_secret_test"
+    RAZORPAY_WEBHOOK_SECRET_PREVIOUS: Optional[str] = None  # Previous secret during key rotation window
+    WEBHOOK_BURST_RATE_LIMIT: int = 120  # Requests per minute for provider webhooks
+    
     # Database (PostgreSQL primary with SQLite fallback)
     USE_SQLITE: bool = True
     SQLITE_URL: str = f"sqlite:///{BASE_DIR}/bharatshield.db"

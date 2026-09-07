@@ -19,8 +19,12 @@ class TransactionRepository:
         txn = Transaction(
             transaction_id=data.get("transaction_id"),
             merchant_id=data.get("merchant_id", "MER_razorpay_001"),
-            amount=data["transaction_amount"],
+            amount=data.get("transaction_amount", data.get("amount", 0.0)),
+            currency=data.get("currency", "INR"),
             payment_method=data.get("payment_method", "UPI"),
+            provider=data.get("provider", "razorpay"),
+            customer_id=data.get("customer_id"),
+            ip_address=data.get("ip_address") or data.get("ip"),
             status=data.get("status", "PENDING"),
             timestamp=data.get("timestamp", datetime.now(timezone.utc)),
             transaction_hour=data.get("transaction_hour"),
