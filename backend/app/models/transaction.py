@@ -26,7 +26,18 @@ class User(Base):
     hashed_password = Column(String(256), nullable=False)
     merchant_id = Column(String(64), ForeignKey("merchants.merchant_id"), nullable=True)
     role = Column(String(32), default="analyst")
+    failed_login_attempts = Column(Integer, default=0)
+    locked_until = Column(DateTime, nullable=True)
+    reset_token = Column(String(128), nullable=True)
+    reset_token_expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+class RevokedToken(Base):
+    __tablename__ = "revoked_tokens"
+
+    jti = Column(String(64), primary_key=True, index=True)
+    revoked_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    expires_at = Column(DateTime, nullable=False)
 
 class Transaction(Base):
     __tablename__ = "transactions"

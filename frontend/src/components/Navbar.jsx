@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Bell, Sparkles, RefreshCw, ShieldAlert, Check } from 'lucide-react';
+import { Bell, Sparkles, RefreshCw, ShieldAlert, Check, LogOut } from 'lucide-react';
 import { transactionsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = ({ onTransactionInjected }) => {
+  const { user, merchantId, logout } = useAuth();
   const [isSimulating, setIsSimulating] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
@@ -86,6 +88,25 @@ const Navbar = ({ onTransactionInjected }) => {
         >
           Intro ⟳
         </button>
+
+        {/* User Account & Logout */}
+        <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+          <div className="flex flex-col items-end">
+            <span className="text-xs font-semibold text-slate-200">
+              {user?.email || 'Merchant Admin'}
+            </span>
+            <span className="text-[10px] font-mono text-emerald-400">
+              {merchantId || 'MER_razorpay_001'}
+            </span>
+          </div>
+          <button
+            onClick={logout}
+            className="p-1.5 rounded-lg border border-slate-800 hover:border-rose-500/50 hover:bg-rose-500/10 text-slate-400 hover:text-rose-300 transition"
+            title="Log Out of BharatSHIELD"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
 
         {/* Live indicator */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-800 text-xs text-slate-300">

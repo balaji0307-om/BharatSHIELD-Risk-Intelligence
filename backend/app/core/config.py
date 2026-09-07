@@ -17,10 +17,18 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: Optional[str] = None
     DEMO_MODE: bool = True
     
-    # Security
+    # Security & Authentication
     JWT_SECRET_KEY: str = "bharatshield-super-secret-key-change-in-production-2025"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours for demo
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 hour for access tokens
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30    # 30 days for Remember Me
+    MAX_FAILED_LOGIN_ATTEMPTS: int = 5     # Lockout threshold
+    LOCKOUT_MINUTES: int = 15              # Temporary account lockout duration
+
+    # CAPTCHA Protection (Google reCAPTCHA v2/v3 or hCaptcha compatible)
+    # Uses standard Google reCAPTCHA test keys by default; override in production via env
+    RECAPTCHA_SECRET_KEY: str = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+    RECAPTCHA_SITE_KEY: str = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
     
     # Database (PostgreSQL primary with SQLite fallback)
     USE_SQLITE: bool = True

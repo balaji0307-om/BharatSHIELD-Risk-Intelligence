@@ -150,24 +150,47 @@ const TransactionDetails = () => {
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div>
-              <span className="text-slate-400">Failed Auth Attempts</span>
-              <div className="font-mono font-bold text-rose-400 mt-0.5">{txn.failed_attempts}</div>
+          {/* Collapsible Technical Details (Decluttered Default View) */}
+          <details className="mt-4 pt-4 border-t border-slate-800 text-xs group">
+            <summary className="cursor-pointer font-semibold text-slate-400 hover:text-emerald-400 flex items-center justify-between transition select-none">
+              <span>Technical & Device Signals</span>
+              <span className="text-[10px] font-mono text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-3 pt-2 font-mono">
+              <div>
+                <span className="text-slate-500">Failed Auth Attempts</span>
+                <div className="font-bold text-rose-400 mt-0.5">{txn.failed_attempts}</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Device Age</span>
+                <div className="text-white mt-0.5">{txn.device_age_days} days</div>
+              </div>
+              <div>
+                <span className="text-slate-500">5-Min Velocity</span>
+                <div className="text-white mt-0.5">{txn.transactions_last_5min} txns</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Distance Shift</span>
+                <div className="text-white mt-0.5">{txn.distance_from_previous.toFixed(1)} km</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Device ID</span>
+                <div className="text-slate-300 truncate mt-0.5" title={txn.device_id}>{txn.device_id || 'N/A'}</div>
+              </div>
+              <div>
+                <span className="text-slate-500">1-Hr Window Sum</span>
+                <div className="text-white mt-0.5">₹{txn.amount_last_1hr?.toLocaleString('en-IN') || '0'}</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Amount Deviation</span>
+                <div className="text-white mt-0.5">{txn.amount_deviation?.toFixed(2)}x avg</div>
+              </div>
+              <div>
+                <span className="text-slate-500">New Device Flag</span>
+                <div className="text-white mt-0.5">{txn.is_new_device ? 'TRUE' : 'FALSE'}</div>
+              </div>
             </div>
-            <div>
-              <span className="text-slate-400">Device Age</span>
-              <div className="font-mono text-white mt-0.5">{txn.device_age_days} days</div>
-            </div>
-            <div>
-              <span className="text-slate-400">5-Min Velocity</span>
-              <div className="font-mono text-white mt-0.5">{txn.transactions_last_5min} txns</div>
-            </div>
-            <div>
-              <span className="text-slate-400">Distance Shift</span>
-              <div className="font-mono text-white mt-0.5">{txn.distance_from_previous.toFixed(1)} km</div>
-            </div>
-          </div>
+          </details>
         </div>
       </div>
 

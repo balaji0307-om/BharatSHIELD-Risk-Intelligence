@@ -264,23 +264,44 @@ const RiskSimulator = () => {
             )}
           </div>
 
-          {/* Top SHAP Drivers in Simulation */}
+          {/* Top SHAP Drivers in Simulation (Primary View) */}
           {simulationResult && simulationResult.risk_factors && (
             <div className="bg-slate-900/40 p-5 rounded-2xl border border-slate-800 space-y-3">
-              <div className="text-xs font-semibold text-slate-300 font-mono uppercase tracking-wider">
-                Top Model Risk Drivers
+              <div className="text-xs font-semibold text-slate-300 font-mono uppercase tracking-wider flex items-center justify-between">
+                <span>Top Model Risk Drivers</span>
+                <span className="text-[10px] text-emerald-400">SHAP Engine</span>
               </div>
 
               <div className="space-y-2">
                 {simulationResult.risk_factors.slice(0, 4).map((factor, i) => (
                   <div key={i} className="flex items-center justify-between text-xs p-2 rounded-lg bg-slate-950/40">
                     <span className="text-slate-300">{factor.display_name}</span>
-                    <span className="font-mono text-rose-400 font-medium">
-                      +{Number(factor.contribution).toFixed(1)} pts
+                    <span className={`font-mono font-medium ${factor.direction === 'increases_risk' ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      {factor.direction === 'increases_risk' ? '+' : '-'}{Number(factor.contribution).toFixed(1)} pts
                     </span>
                   </div>
                 ))}
               </div>
+
+              {/* Collapsible Full Model Weights */}
+              {simulationResult.risk_factors.length > 4 && (
+                <details className="mt-3 pt-3 border-t border-slate-800/80 text-xs group">
+                  <summary className="cursor-pointer text-slate-400 hover:text-emerald-400 font-mono text-[11px] flex items-center justify-between transition select-none">
+                    <span>View all {simulationResult.risk_factors.length} SHAP factor contributions</span>
+                    <span className="text-[10px] group-open:rotate-180 transition-transform">▼</span>
+                  </summary>
+                  <div className="space-y-1 mt-2.5 max-h-48 overflow-y-auto pr-1">
+                    {simulationResult.risk_factors.slice(4).map((factor, i) => (
+                      <div key={i} className="flex items-center justify-between text-[11px] py-1 px-2 rounded bg-slate-950/60 font-mono">
+                        <span className="text-slate-400">{factor.display_name || factor.feature}</span>
+                        <span className={factor.direction === 'increases_risk' ? 'text-rose-400' : 'text-emerald-400'}>
+                          {factor.direction === 'increases_risk' ? '+' : '-'}{Number(factor.contribution).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
             </div>
           )}
         </div>

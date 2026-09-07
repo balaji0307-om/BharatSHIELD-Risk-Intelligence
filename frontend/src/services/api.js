@@ -11,9 +11,9 @@ const api = axios.create({
   },
 });
 
-// Attach token if available
+// Attach token from localStorage or sessionStorage
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('bharatshield_token');
+  const token = localStorage.getItem('bharatshield_token') || sessionStorage.getItem('bharatshield_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -21,14 +21,58 @@ api.interceptors.request.use((config) => {
 });
 
 export const authAPI = {
-  login: async (merchantId = 'MER_razorpay_001', password = 'demo123') => {
-    const res = await api.post('/auth/login', { merchant_id: merchantId, password });
-    if (res.data.access_token) {
-      localStorage.setItem('bharatshield_token', res.data.access_token);
-      localStorage.setItem('bharatshield_merchant', res.data.merchant_id);
-    }
+  signup: async ({ email, password, merchantName, captchaToken }) => {
+    const res = await api.post('/auth/signup', {
+      email,
+      password,
+      merchant_name: merchantName,
+      captcha_token: captchaToken
+    });
     return res.data;
   },
+  login: async ({ email, merchantId, password, rememberMe, captchaToken }) => {
+    const res = await api.post('/auth/login', {
+      email,
+      merchant_id: merchantId,
+      password,
+      remember_me: rememberMe,
+      captcha_token: captchaToken
+    });
+    return res.data;
+  },
+  refresh: async (refreshToken) => {
+    const res = await api.post('/auth/refresh', { refresh_token: refreshToken });
+    return res.data;
+  },
+  logout: async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (e) {
+      // Ignore network errors on logout
+    } finally {
+      localStorage.removeItem('bharatshield_token');
+      localStorage.removeItem('bharatshield_refresh_token');
+      localStorage.removeItem('bharatshield_user');
+      sessionStorage.removeItem('bharatshield_token');
+      sessionStorage.removeItem('bharatshield_refresh_token');
+      sessionStorage.removeItem('bharatshield_user');
+    }
+  },
+  getMe: async () => {
+    const res = await api.get('/auth/me');
+    return res.data;
+  },
+  forgotPassword: async (email) => {
+    const res = await api.post('/auth/forgot-password', { email });
+    return res.data;
+  },
+  resetPassword: async (resetToken, newPassword) => {
+    const res = await api.post('/auth/reset-password', {
+      reset_token: resetToken,
+      new_password: newPassword
+    });
+    return res.data;
+  }
 };
 
 export const transactionsAPI = {

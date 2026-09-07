@@ -48,6 +48,24 @@ def seed():
     db.commit()
     print(f"  Seeded {len(merchants)} merchants.")
 
+    # 1b. Seed Admin & Analyst Users
+    from backend.app.models.transaction import User
+    from backend.app.core.security import get_password_hash
+    demo_users = [
+        {"email": "admin@bharatshield.com", "password": "demo123", "merchant_id": "MER_razorpay_001", "role": "admin"},
+        {"email": "analyst@bharatshield.com", "password": "demo123", "merchant_id": "MER_phonepe_002", "role": "analyst"},
+    ]
+    for u in demo_users:
+        if not db.query(User).filter(User.email == u["email"]).first():
+            db.add(User(
+                email=u["email"],
+                hashed_password=get_password_hash(u["password"]),
+                merchant_id=u["merchant_id"],
+                role=u["role"]
+            ))
+    db.commit()
+    print(f"  Seeded {len(demo_users)} demo users.")
+
     # 2. Load demo transactions
     demo_csv = PROJECT_ROOT / "data" / "raw" / "demo_transactions.csv"
     if not demo_csv.exists():

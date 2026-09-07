@@ -13,12 +13,16 @@ import FraudNetwork from './pages/FraudNetwork';
 import RiskSimulator from './pages/RiskSimulator';
 import Investigations from './pages/Investigations';
 import AuditTrail from './pages/AuditTrail';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
 import CinematicSplash from './components/CinematicSplash';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 
-function AppContent() {
+function AuthenticatedApp() {
   const navigate = useNavigate();
   const [showSplash, setShowSplash] = useState(() => {
-    // Check if user has already seen the splash in this browser session
     return !sessionStorage.getItem('bharatshield_intro_seen');
   });
 
@@ -37,30 +41,26 @@ function AppContent() {
     <>
       {showSplash && <CinematicSplash onComplete={handleSplashComplete} />}
       <div className="flex min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
-      {/* Fixed Sidebar */}
-      <Sidebar />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950">
-        <Navbar onTransactionInjected={handleTransactionInjected} />
-
-        <main className="flex-1 overflow-y-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/threats" element={<Threats />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/transactions/:id" element={<TransactionDetails />} />
-            <Route path="/fraud-network" element={<FraudNetwork />} />
-            <Route path="/investigations" element={<Investigations />} />
-            <Route path="/simulator" element={<RiskSimulator />} />
-            <Route path="/assistant" element={<RiskAssistant />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/audit" element={<AuditTrail />} />
-          </Routes>
-        </main>
+        <Sidebar />
+        <div className="flex-1 flex flex-col min-w-0 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950">
+          <Navbar onTransactionInjected={handleTransactionInjected} />
+          <main className="flex-1 overflow-y-auto">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/threats" element={<Threats />} />
+              <Route path="/transactions" element={<Transactions />} />
+              <Route path="/transactions/:id" element={<TransactionDetails />} />
+              <Route path="/fraud-network" element={<FraudNetwork />} />
+              <Route path="/investigations" element={<Investigations />} />
+              <Route path="/simulator" element={<RiskSimulator />} />
+              <Route path="/assistant" element={<RiskAssistant />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/audit" element={<AuditTrail />} />
+            </Routes>
+          </main>
+        </div>
       </div>
-    </div>
     </>
   );
 }
@@ -68,7 +68,24 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <AuthProvider>
+        <Routes>
+          {/* Public Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          {/* All internal application routes are protected */}
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedApp />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
