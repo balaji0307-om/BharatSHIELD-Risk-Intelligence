@@ -1,11 +1,21 @@
 import axios from 'axios';
 
-const rawBase = import.meta.env?.VITE_API_URL || '';
-// Ensure baseURL points to /api without double slashes
-const apiBase = rawBase ? `${rawBase.replace(/\/+$/, '')}/api` : '/api';
+const getApiBase = () => {
+  if (import.meta.env?.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api`;
+  }
+  if (
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
+  ) {
+    return 'https://bharatshield-risk-intelligence-api.onrender.com/api';
+  }
+  return '/api';
+};
 
 const api = axios.create({
-  baseURL: apiBase,
+  baseURL: getApiBase(),
   headers: {
     'Content-Type': 'application/json',
   },

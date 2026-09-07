@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   Siren,
@@ -14,7 +14,7 @@ import {
 
 const Sidebar = () => {
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/threats', label: 'Live Threats', icon: Siren },
     { to: '/transactions', label: 'Transactions', icon: ReceiptText },
     { to: '/fraud-network', label: 'Fraud Network', icon: Network },
@@ -29,7 +29,7 @@ const Sidebar = () => {
     <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between shrink-0 h-screen sticky top-0">
       <div>
         {/* Logo Section */}
-        <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-800/80">
+        <Link to="/dashboard" className="h-16 flex items-center gap-3 px-6 border-b border-slate-800/80 hover:opacity-90 transition">
           <img src="/logo.svg" alt="BharatSHIELD" className="w-8 h-8" />
           <div>
             <div className="font-extrabold tracking-tight text-white flex items-center gap-1.5 text-base">
@@ -39,7 +39,7 @@ const Sidebar = () => {
               Risk Intelligence
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Navigation Links */}
         <nav className="p-3 space-y-1">

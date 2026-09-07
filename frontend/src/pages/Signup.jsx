@@ -48,10 +48,18 @@ const Signup = () => {
       });
 
       login(res, true);
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Registration failed. Please check your details.';
-      setError(msg);
+      const detail = err.response?.data?.detail;
+      if (err.response?.status === 404 || detail === 'Not Found') {
+        setError('Registration service is temporarily unreachable. Please retry in a few moments.');
+      } else if (Array.isArray(detail)) {
+        setError(detail.map((d) => d.msg || JSON.stringify(d)).join(', '));
+      } else if (typeof detail === 'string') {
+        setError(detail);
+      } else {
+        setError('Registration failed. Please check your details and try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -91,7 +99,10 @@ const Signup = () => {
                 <input
                   type="text"
                   value={merchantName}
-                  onChange={(e) => setMerchantName(e.target.value)}
+                  onChange={(e) => {
+                    setMerchantName(e.target.value);
+                    if (error) setError(null);
+                  }}
                   placeholder="e.g. Acme Payments Ltd"
                   className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 />
@@ -108,7 +119,10 @@ const Signup = () => {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError(null);
+                  }}
                   placeholder="analyst@merchant.com"
                   className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 />
@@ -125,7 +139,10 @@ const Signup = () => {
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError(null);
+                  }}
                   placeholder="••••••••"
                   className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 />
@@ -142,7 +159,10 @@ const Signup = () => {
                   type="password"
                   required
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (error) setError(null);
+                  }}
                   placeholder="••••••••"
                   className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 />
@@ -152,7 +172,13 @@ const Signup = () => {
 
             {/* CAPTCHA Widget */}
             <div className="pt-1">
-              <CaptchaWidget onVerify={setCaptchaToken} error={captchaError} />
+              <CaptchaWidget
+                onVerify={(tok) => {
+                  setCaptchaToken(tok);
+                  if (captchaError) setCaptchaError(null);
+                }}
+                error={captchaError}
+              />
             </div>
 
             <button

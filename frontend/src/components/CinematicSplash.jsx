@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * Cinematic Splash / Landing Intro Screen for BHARATSHIELD
@@ -16,10 +19,13 @@ import React, { useState, useEffect } from 'react';
  * - Smooth fade out transition to main application upon completion (or via quick skip).
  */
 
-const CinematicSplash = ({ onComplete }) => {
+const CinematicSplash = ({ onComplete, isLanding = false }) => {
   const [phase, setPhase] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
+
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Stage 1: Initial load
@@ -50,21 +56,27 @@ const CinematicSplash = ({ onComplete }) => {
 
         if (pct >= 100) {
           clearInterval(interval);
-          setTimeout(() => {
-            handleExit();
-          }, 400);
+          if (!isLanding) {
+            setTimeout(() => {
+              handleExit();
+            }, 400);
+          }
         }
       }, 25);
 
       return () => clearInterval(interval);
     }
-  }, [phase]);
+  }, [phase, isLanding]);
 
   const handleExit = () => {
     setIsExiting(true);
     setTimeout(() => {
-      if (onComplete) onComplete();
-    }, 800); // 800ms exit transition
+      if (onComplete) {
+        onComplete();
+      } else {
+        navigate(isAuthenticated ? '/dashboard' : '/login');
+      }
+    }, 600);
   };
 
   return (
@@ -133,25 +145,65 @@ const CinematicSplash = ({ onComplete }) => {
         ))}
       </div>
 
-      {/* Top Bar: Discreet Security Seal & Skip Option */}
-      <header className="w-full max-w-6xl mx-auto px-8 pt-8 flex items-center justify-between z-10">
+      {/* Top Bar: Discreet Security Seal & Action Options */}
+      <header className="w-full max-w-6xl mx-auto px-6 sm:px-8 pt-6 sm:pt-8 flex items-center justify-between z-20">
         <div
           className={`flex items-center gap-2.5 transition-all duration-700 ${
             phase >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
           }`}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-          <span className="text-[11px] font-mono tracking-widest text-slate-500 uppercase font-semibold">
+          <span className="text-[10px] sm:text-[11px] font-mono tracking-widest text-slate-500 uppercase font-semibold">
             NATIONAL CYBER DEFENSE INITIATIVE
           </span>
         </div>
 
-        <button
-          onClick={handleExit}
-          className="text-[11px] font-mono tracking-wider text-slate-600 hover:text-slate-900 transition-colors uppercase px-3 py-1 rounded-full border border-slate-300/80 hover:border-slate-400 bg-white/70 backdrop-blur"
-        >
-          Enter Platform ➔
-        </button>
+        {isLanding ? (
+          <div
+            className={`flex items-center gap-2 sm:gap-3 transition-all duration-700 ${
+              phase >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+            }`}
+          >
+            {isAuthenticated ? (
+              <Link
+                to="/dashboard"
+                className="text-xs font-mono tracking-wider text-white px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 shadow-md shadow-emerald-950/30 font-bold transition-all flex items-center gap-1.5"
+              >
+                <span>Enter Console</span>
+                <ArrowRight size={13} />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-xs font-mono tracking-wider text-slate-700 hover:text-slate-950 transition-colors uppercase px-3 py-1.5 rounded-full border border-slate-300 hover:border-slate-400 bg-white/80 backdrop-blur font-semibold"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/signup"
+                  className="text-xs font-mono tracking-wider text-white px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-sm font-bold transition-all"
+                >
+                  Get Started
+                </Link>
+                <Link
+                  to="/dashboard"
+                  className="text-xs font-mono tracking-wider text-slate-900 hover:text-black uppercase px-3.5 py-1.5 rounded-full border border-slate-400/80 hover:border-slate-600 bg-white font-bold transition-all hidden sm:inline-flex items-center gap-1 shadow-sm"
+                >
+                  <span>Launch Console</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={handleExit}
+            className="text-[11px] font-mono tracking-wider text-slate-600 hover:text-slate-900 transition-colors uppercase px-3 py-1 rounded-full border border-slate-300/80 hover:border-slate-400 bg-white/70 backdrop-blur"
+          >
+            Enter Platform ➔
+          </button>
+        )}
       </header>
 
       {/* Centerpiece: Emblem + Brand Title + Tagline */}
@@ -419,7 +471,7 @@ const CinematicSplash = ({ onComplete }) => {
 
         {/* Bottom Status Message */}
         <div
-          className={`flex items-center gap-2 mb-3.5 transition-all duration-700 ease-out ${
+          className={`flex items-center gap-2 mb-3 transition-all duration-700 ease-out ${
             phase >= 8 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
           }`}
         >
@@ -431,6 +483,31 @@ const CinematicSplash = ({ onComplete }) => {
             Safety First.
           </span>
         </div>
+
+        {/* Action CTAs when on Landing Page */}
+        {isLanding && (
+          <div
+            className={`flex items-center justify-center gap-3 mb-3.5 transition-all duration-700 z-20 ${
+              phase >= 8 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+            }`}
+          >
+            <Link
+              to={isAuthenticated ? '/dashboard' : '/login'}
+              className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold tracking-wider shadow-lg shadow-slate-950/20 transition active:scale-95 flex items-center gap-2 border border-slate-800"
+            >
+              <span>{isAuthenticated ? 'Enter Console' : 'Launch Console'}</span>
+              <ArrowRight size={13} />
+            </Link>
+            {!isAuthenticated && (
+              <Link
+                to="/signup"
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-mono font-bold tracking-wider shadow-lg shadow-emerald-950/20 transition active:scale-95"
+              >
+                Create Account
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Thin Elegant Progress Indicator */}
         <div
@@ -454,7 +531,9 @@ const CinematicSplash = ({ onComplete }) => {
             phase >= 8 ? 'opacity-80' : 'opacity-0'
           }`}
         >
-          SYSTEM INITIALIZING • SECURE PROTOCOLS ACTIVE ({progress}%)
+          {progress >= 100
+            ? 'SYSTEM ACTIVE • NATIONAL DEFENSE ONLINE (100%)'
+            : `SYSTEM INITIALIZING • SECURE PROTOCOLS ACTIVE (${progress}%)`}
         </div>
       </footer>
 
