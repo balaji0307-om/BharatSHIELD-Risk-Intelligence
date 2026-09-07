@@ -45,7 +45,7 @@ def get_merchant_posture(
     if recent_scores:
         avg_risk = sum(s[0] for s in recent_scores) / len(recent_scores)
     else:
-        avg_risk = 15.0
+        avg_risk = 0.0
 
     if avg_risk >= 75:
         overall_level = "CRITICAL"
@@ -92,13 +92,7 @@ def get_merchant_posture(
         })
 
     if not top_drivers:
-        top_drivers = [
-            {"driver": "New Device Detected", "percentage": 34.0, "contribution_points": 120.0},
-            {"driver": "Transaction Velocity (5 min)", "percentage": 27.0, "contribution_points": 95.0},
-            {"driver": "Geographic Anomaly / Distance", "percentage": 19.0, "contribution_points": 67.0},
-            {"driver": "Failed Authentication Attempts", "percentage": 13.0, "contribution_points": 46.0},
-            {"driver": "Amount Deviation from Average", "percentage": 7.0, "contribution_points": 24.0},
-        ]
+        top_drivers = []
 
     return {
         "merchant_id": merchant_id,

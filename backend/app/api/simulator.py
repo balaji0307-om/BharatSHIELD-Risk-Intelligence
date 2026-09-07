@@ -1,8 +1,15 @@
-from fastapi import APIRouter, Depends
+"""
+Risk Simulator API: What-if analysis using the production ML pipeline.
+Does NOT write to the database or audit trail — purely read-only inference.
+"""
+
+import logging
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from backend.app.core.security import get_current_merchant_id
 from backend.app.services.risk_engine import risk_engine
-from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/simulator", tags=["Risk Simulator"])
 
@@ -18,58 +25,32 @@ class SimulatorInput(BaseModel):
 
 @router.post("/assess")
 def simulate_risk(payload: SimulatorInput, merchant_id: str = Depends(get_current_merchant_id)):
-    # Prepare pseudo-transaction for the engine
-    tx_data = payload.model_dump()
-    tx_data["transaction_id"] = "SIM_123456"
-    tx_data["merchant_id"] = merchant_id
-    
-    # Normally we'd call assess_transaction but we want to avoid DB writes.
-    # The risk_engine.evaluate method evaluates without saving if we bypass db.
-    # Assuming risk_engine exposes predict methods directly.
-    features = {
-        "amount": tx_data.get("transaction_amount", 0),
-        "device_age_days": tx_data.get("device_age_days", 0),
-        "is_new_device": int(tx_data.get("is_new_device", False)),
-        "failed_attempts": tx_data.get("failed_attempts", 0),
-        "is_new_location": int(tx_data.get("is_new_location", False)),
-        "distance_from_previous": tx_data.get("distance_from_previous", 0),
-        "transactions_last_5min": tx_data.get("transactions_last_5min", 0),
-        "transactions_last_10min": 0,
-        "transactions_last_1hr": 0,
-        "amount_last_1hr": 0.0,
-        "location_change": int(tx_data.get("is_new_location", False)),
-        "device_transaction_count": 1,
-        "transaction_hour": 12,
-        "transaction_day": 3,
-        "amount_deviation": 1.0,
-        "historical_frequency": 1.0
-    }
-    
-    # Basic mockup for simulator fallback since assess_transaction saves to DB normally
+    """
+    Runs the full production inference pipeline (feature engineering → scaler →
+    XGBoost predict_proba → SHAP explanation → recommendation) without any
+    database writes.  Shares the exact same RiskEngine.assess_transaction()
+    code path as POST /api/transactions/score.
+    """
+    raw_input = payload.model_dump()
+    raw_input["transaction_id"] = "SIM_WHAT_IF"
+    raw_input["merchant_id"] = merchant_id
+
     try:
-        prediction = risk_engine.predict_fraud(features)
-        risk_score = prediction["risk_score"]
-        fraud_probability = prediction["fraud_probability"]
-    except Exception:
-        risk_score = 15
-        fraud_probability = 0.15
-        
-    risk_level = "LOW"
-    action = "ALLOW"
-    if risk_score > 75:
-        risk_level = "CRITICAL"
-        action = "BLOCK"
-    elif risk_score > 50:
-        risk_level = "HIGH"
-        action = "MANUAL_REVIEW"
-    elif risk_score > 30:
-        risk_level = "MEDIUM"
-        action = "STEP_UP_AUTH"
+        assessment = risk_engine.assess_transaction(raw_input)
+    except Exception as exc:
+        logger.error(f"Simulator inference failed: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Risk engine inference failed: {str(exc)}"
+        )
 
     return {
-        "risk_score": risk_score,
-        "risk_level": risk_level,
-        "risk_factors": [{"feature": "amount", "contribution": 0.5}], # Mockup for safety
-        "recommended_action": action,
-        "disclaimer": "Simulation only - does not affect actual transactions"
+        "fraud_probability": assessment["fraud_probability"],
+        "risk_score": assessment["risk_score"],
+        "risk_level": assessment["risk_level"],
+        "recommended_action": assessment["recommended_action"],
+        "risk_factors": assessment["risk_factors"],
+        "base_risk_score": assessment["base_risk_score"],
+        "total_risk_adjustment": assessment["total_risk_adjustment"],
+        "disclaimer": "Simulation only — does not affect actual transactions or audit trail"
     }

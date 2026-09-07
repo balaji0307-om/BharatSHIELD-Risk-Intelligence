@@ -2,9 +2,12 @@
 Explanation service wrapping SHAP TreeExplainer and human-readable translation.
 """
 
+import logging
 from typing import Dict, Any, List
 import pandas as pd
 from ml.src.explainability.explainer import FraudExplainer
+
+logger = logging.getLogger(__name__)
 
 class ExplanationService:
     def __init__(self, explainer: FraudExplainer):
@@ -25,7 +28,7 @@ class ExplanationService:
             raw_exp = self.explainer.explain_prediction(feature_vector)
             return raw_exp
         except Exception as exc:
-            # Fallback heuristic explanation if TreeExplainer encounters dimension mismatch
+            logger.warning(f"SHAP TreeExplainer failed, falling back to heuristic explanation: {exc}", exc_info=True)
             return self._heuristic_explanation(feature_dict)
 
     def _heuristic_explanation(self, feat: Dict[str, Any]) -> Dict[str, Any]:

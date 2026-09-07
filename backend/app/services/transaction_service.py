@@ -62,7 +62,8 @@ class TransactionService:
         try:
             anomaly_service.evaluate_merchant_spikes(db, req.merchant_id)
         except Exception as exc:
-            pass # Non-blocking anomaly evaluation
+            import logging
+            logging.getLogger(__name__).warning(f"Non-blocking anomaly evaluation failed: {exc}")
             
         return {
             "transaction_id": txn_id,

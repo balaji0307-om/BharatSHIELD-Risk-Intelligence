@@ -8,12 +8,29 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.core.config import settings
-from backend.app.database.connection import init_db
+from backend.app.database.connection import init_db, SessionLocal
 from backend.app.services.risk_engine import risk_engine
 from backend.app.api import transactions, risk, analytics, alerts, assistant, auth, fraud_network, threats, simulator, cases, merchant_posture, audit
+from backend.app.models.transaction import Transaction
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("bharatshield")
+
+def _seed_if_empty():
+    """Idempotent: seeds demo data only when the transactions table is empty."""
+    try:
+        db = SessionLocal()
+        count = db.query(Transaction).count()
+        db.close()
+        if count > 0:
+            logger.info(f"Database already contains {count} transactions — skipping seed.")
+            return
+        logger.info("Database is empty — running demo seed pipeline...")
+        from scripts.seed_database import seed
+        seed()
+        logger.info("Demo seed pipeline completed.")
+    except Exception as exc:
+        logger.error(f"Auto-seed failed (non-fatal): {exc}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,6 +38,7 @@ async def lifespan(app: FastAPI):
     init_db()
     logger.info("Loading ML fraud model and SHAP explainability engine...")
     risk_engine.load_artifacts()
+    _seed_if_empty()
     logger.info("BharatSHIELD ready to process live transactions.")
     yield
     logger.info("BharatSHIELD shutting down gracefully.")

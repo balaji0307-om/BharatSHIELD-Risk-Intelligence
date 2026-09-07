@@ -1,10 +1,13 @@
 """
 Explainability module using SHAP for BharatSHIELD.
 """
+import logging
 import shap
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, Union
+
+logger = logging.getLogger(__name__)
 
 class FraudExplainer:
     def __init__(self, model: Any, feature_names: list):
@@ -13,7 +16,8 @@ class FraudExplainer:
         
         try:
             self.explainer = shap.TreeExplainer(model)
-        except Exception:
+        except Exception as exc:
+            logger.warning(f"TreeExplainer initialization failed: {exc}")
             self.explainer = None
             
         self._feature_display_names = {
